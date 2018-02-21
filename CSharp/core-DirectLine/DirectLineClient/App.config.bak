@@ -1,8 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <configuration>
   <appSettings>
-    <add key="DirectLineSecret" value="skRqjWHcLLY.cwA.50w.GbTJWTiNvaA-8vjHQcfIev_GV5qDicpVK-hPxENHLh4" />
-     <add key="BotId" value="amitsample" />
+    <add key="DirectLineSecret" value="YourBotDirectLineSecret" />
+     <add key="BotId" value="YourBotId" />
   </appSettings>
     <startup> 
         <supportedRuntime version="v4.0" sku=".NETFramework,Version=v4.6.1" />

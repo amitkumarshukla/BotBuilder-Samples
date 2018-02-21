@@ -1,7 +1,6 @@
 ﻿namespace DirectLineSampleClient
 {
     using System;
-    using System.Collections.Generic;
     using System.Configuration;
     using System.Diagnostics;
     using System.Linq;
@@ -12,27 +11,9 @@
 
     public class Program
     {
-        [Serializable]
-        public class BotCurrentDialogState
-        {
-            public int CurState { get; set; }
-            public BotCurrentDialogState(int curState)
-            {
-                CurState = curState;
-            }
-        }
-
-        [Serializable]
-        public class MyAppCard
-        {
-            public string AppName { get; set; }
-            public string AppHandler { get; set; }
-        }
-
         private static string directLineSecret = ConfigurationManager.AppSettings["DirectLineSecret"];
         private static string botId = ConfigurationManager.AppSettings["BotId"];
         private static string fromUser = "DirectLineSampleClientUser";
-        private static int currentStateNumber = 0;
 
         public static void Main(string[] args)
         {
@@ -45,28 +26,15 @@
             
             var conversation = await client.Conversations.StartConversationAsync();
 
-            System.Threading.Thread t1 = new System.Threading.Thread(async () => await ReadBotMessagesAsync(client, conversation.ConversationId));
-            t1.Start();
+            new System.Threading.Thread(async () => await ReadBotMessagesAsync(client, conversation.ConversationId)).Start();
 
-            System.Threading.Thread t2 = new System.Threading.Thread(() => SendMessageToBotAsync(client, conversation));
+            Console.Write("Command> ");
 
-            t2.Start();
-
-            t2.Join();
-            t1.Join();
-            
-        }
-
-        private static void SendMessageToBotAsync(DirectLineClient client, Conversation conversation)
-        {
-            Console.Write("Enter and than speak> ");
             while (true)
             {
                 string input = Console.ReadLine().Trim();
 
-                input = SpeechRecognition.start();
-
-                if (input.Trim().ToLower() == "exit" || input.Trim().ToLower() == "exit.")
+                if (input.ToLower() == "exit")
                 {
                     break;
                 }
@@ -74,25 +42,14 @@
                 {
                     if (input.Length > 0)
                     {
-
                         Activity userMessage = new Activity
                         {
                             From = new ChannelAccount(fromUser),
                             Text = input,
                             Type = ActivityTypes.Message
                         };
-                        if (userMessage.Entities == null)
-                        {
-                            userMessage.Entities = new List<Microsoft.Bot.Connector.DirectLine.Entity>();
-                        }
-                        Microsoft.Bot.Connector.DirectLine.Entity entity = new Microsoft.Bot.Connector.DirectLine.Entity();
-                        BotCurrentDialogState s = new BotCurrentDialogState(currentStateNumber);
-                        entity.SetAs<BotCurrentDialogState>(s);
-                        entity.Type = "CurrentState";
 
-                        userMessage.Entities.Add(entity);
-
-                        client.Conversations.PostActivityAsync(conversation.ConversationId, userMessage);
+                        await client.Conversations.PostActivityAsync(conversation.ConversationId, userMessage);
                     }
                 }
             }
@@ -127,48 +84,17 @@
 
                                 case "image/png":
                                     Console.WriteLine($"Opening the requested image '{attachment.ContentUrl}'");
+
                                     Process.Start(attachment.ContentUrl);
                                     break;
-
-                                case "application/json":
-                                    MyAppCard account = JsonConvert.DeserializeObject<MyAppCard>(attachment.Content.ToString());
-
-                                    //Console.WriteLine(account.AppName + " :: " + account.AppHandler);
-                                    int minDistance = 100;
-                                    string key = "";
-                                    foreach(var item in Hardcoded.appNamevsExeMapping)
-                                    {
-                                        int distance = LevenshteinDistance.Compute(account.AppName, item.Key);
-                                        if (distance < minDistance)
-                                        {
-                                            minDistance = distance;
-                                            key = item.Key;
-                                        }
-                                    }
-                                    if(key != "")
-                                    {
-                                        System.Diagnostics.Process.Start(Hardcoded.appNamevsExeMapping[key]);
-                                    }
-                                    break;
                             }
-                        }
-                    }
-
-                    foreach(Entity entity in activity.Entities)
-                    {
-                        if(entity.Type == "CurrentState")
-                        {
-                            currentStateNumber = entity.GetAs<BotCurrentDialogState>().CurState;
-                            Console.WriteLine("Current state is {0} ", currentStateNumber);
-                            Console.WriteLine();
                         }
                     }
 
                     Console.Write("Command> ");
                 }
 
-                await Task.Delay(2000);
-
+                await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
             }
         }
 
