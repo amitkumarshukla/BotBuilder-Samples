@@ -6,6 +6,16 @@
     using System.Threading.Tasks;
     using Microsoft.Bot.Builder.Dialogs;
     using Microsoft.Bot.Connector;
+    using MultiDialogsBot.Luis;
+
+    [Serializable]
+    public class MyAppCard
+    {
+        public string AppName { get; set; }
+        public string AppHandler { get; set; }
+    }
+
+    
 
     [Serializable]
     public class RootDialog : IDialog<object>
@@ -22,69 +32,39 @@
         public virtual async Task MessageReceivedAsync(IDialogContext context, IAwaitable<IMessageActivity> result)
         {
             var message = await result;
+            var reply = context.MakeMessage();
+            reply.Attachments = new List<Attachment>();
 
-            if (message.Text.ToLower().Contains("help") || message.Text.ToLower().Contains("support") || message.Text.ToLower().Contains("problem"))
+            Rootobject outputObj = await OpenAppLuis.MakeRequest(message.Text);
+
+            string appname = "";
+            string apphandler = "";
+
+            if (outputObj.entities != null && outputObj.entities.Length != 0)
             {
-                await context.Forward(new SupportDialog(), this.ResumeAfterSupportDialog, message, CancellationToken.None);
+                appname = outputObj.entities[0].entity;
             }
-            else
+
+            if (outputObj.topScoringIntent != null && outputObj.topScoringIntent.intent != null)
             {
-                this.ShowOptions(context);
+                apphandler = outputObj.topScoringIntent.intent;
             }
-        }
 
-        private void ShowOptions(IDialogContext context)
-        {
-            PromptDialog.Choice(context, this.OnOptionSelected, new List<string>() { FlightsOption, HotelsOption }, "Are you looking for a flight or a hotel?", "Not a valid option", 3);
-        }
-
-        private async Task OnOptionSelected(IDialogContext context, IAwaitable<string> result)
-        {
-            try
+            var MyAppCardobj = new MyAppCard()
             {
-                string optionSelected = await result;
+                AppName = appname,
+                AppHandler = apphandler
+            };
 
-                switch (optionSelected)
-                {
-                    case FlightsOption:
-                        context.Call(new FlightsDialog(), this.ResumeAfterOptionDialog);
-                        break;
-
-                    case HotelsOption:
-                        context.Call(new HotelsDialog(), this.ResumeAfterOptionDialog);
-                        break;
-                }
-            }
-            catch (TooManyAttemptsException ex)
+            var outAttachment = new Attachment()
             {
-                await context.PostAsync($"Ooops! Too many attemps :(. But don't worry, I'm handling that exception and you can try again!");
+                ContentType = "application/json",
+                Content = MyAppCardobj
+            };
+            reply.Attachments.Add(outAttachment);
 
-                context.Wait(this.MessageReceivedAsync);
-            }
-        }
-
-        private async Task ResumeAfterSupportDialog(IDialogContext context, IAwaitable<int> result)
-        {
-            var ticketNumber = await result;
-
-            await context.PostAsync($"Thanks for contacting our support team. Your ticket number is {ticketNumber}.");
+            await context.PostAsync(reply);
             context.Wait(this.MessageReceivedAsync);
-        }
-
-        private async Task ResumeAfterOptionDialog(IDialogContext context, IAwaitable<object> result)
-        {
-            try
-            {
-                var message = await result;
-            }
-            catch (Exception ex)
-            {
-                await context.PostAsync($"Failed with message: {ex.Message}");
-            }
-            finally
-            {
-                context.Wait(this.MessageReceivedAsync);
-            }
         }
     }
 }
