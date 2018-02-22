@@ -3,13 +3,18 @@ using Microsoft.CognitiveServices.SpeechRecognition;
 
 namespace DirectLineSampleClient
 {
-    public class SpeechRecognition
+    public static class SpeechRecognition
     {
         static MicrophoneRecognitionClient micClient;
         static String finaltext = "";
         static bool flag = true;
         static bool timerStarted = false;
         static DateTime previousTime;
+
+        static SpeechRecognition()
+        {
+            CreateMicrophoneRecoClient();
+        }
 
         static string GetAuthenticationUri()
         {
@@ -77,7 +82,6 @@ namespace DirectLineSampleClient
         public static string start()
         {
             flag = true;
-            CreateMicrophoneRecoClient();
             micClient.StartMicAndRecognition();
 
             while (flag) ;
