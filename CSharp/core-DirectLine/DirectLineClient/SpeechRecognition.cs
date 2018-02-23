@@ -102,7 +102,7 @@ namespace DirectLineSampleClient
                     DateTime curTime = DateTime.Now;
                     TimeSpan span = curTime - previousTime;
                     int ms = (int)span.TotalMilliseconds;
-                    if (ms > 500)
+                    if (ms > 200)
                     {
                         functionPointer(finaltext, mClient, mConversation);
                         break;
@@ -122,11 +122,12 @@ namespace DirectLineSampleClient
 
             micClient.StartMicAndRecognition();
 
-            while (flag) ;
+            while (flag)
+            {
+                Thread.Sleep(100);
+            }
 
             micClient.EndMicAndRecognition();
-            //micClient.Dispose();
-
 
             return finaltext;
         }

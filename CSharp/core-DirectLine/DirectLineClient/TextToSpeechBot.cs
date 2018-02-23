@@ -48,7 +48,7 @@ namespace DirectLineSampleClient
             try
             {
                 accessToken = auth.GetAccessToken();
-                Console.WriteLine("Token: {0}\n", accessToken);
+                //Console.WriteLine("Token: {0}\n", accessToken);
             }
             catch (Exception ex)
             {
@@ -58,7 +58,7 @@ namespace DirectLineSampleClient
                 return;
             }
 
-            Console.WriteLine("Starting TTSSample request code execution.");
+            //Console.WriteLine("Starting TTSSample request code execution.");
 
             string requestUri = "https://speech.platform.bing.com/synthesize";
 

@@ -146,8 +146,8 @@
                                     if (key != "")
                                     {
                                         TextToSpeechBot ttsbot = new TextToSpeechBot();
-                                        ttsbot.MainTTS("I am opening " + account.AppName + " for you. Please enjoy it.");
                                         System.Diagnostics.Process.Start(Hardcoded.appNamevsExeMapping[key]);
+                                        ttsbot.MainTTS("I am opening " + account.AppName + " for you. Please enjoy it.");
                                     }
                                     break;
                             }
