@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Threading.Tasks;
+using Microsoft.Bot.Connector.DirectLine;
 using Microsoft.CognitiveServices.SpeechRecognition;
 
 namespace DirectLineSampleClient
@@ -10,6 +12,13 @@ namespace DirectLineSampleClient
         static bool flag = true;
         static bool timerStarted = false;
         static DateTime previousTime;
+
+        static DirectLineClient mClient;
+        static Microsoft.Bot.Connector.DirectLine.Conversation mConversation;
+
+        public delegate void SendRequestToBotDelegate(string input, DirectLineClient client, Microsoft.Bot.Connector.DirectLine.Conversation conversation);
+
+        private static SendRequestToBotDelegate functionPointer;
 
         static SpeechRecognition()
         {
@@ -35,15 +44,15 @@ namespace DirectLineSampleClient
 
         static void OnPartialResponseReceivedHandler(object sender, PartialSpeechResponseEventArgs e)
         {
-            //Console.WriteLine("--- Partial result received by OnPartialResponseReceivedHandler() ---");
             Console.WriteLine("{0}", e.PartialResult);
-            //Console.WriteLine();
             finaltext = e.PartialResult;
+            previousTime = DateTime.Now;
             if (!timerStarted)
             {
                 timerStarted = true;
-                previousTime = DateTime.Now;
             }
+            previousTime = DateTime.Now;
+
         }
 
         static void OnMicShortPhraseResponseReceivedHandler(object sender, SpeechResponseEventArgs e)
@@ -79,10 +88,42 @@ namespace DirectLineSampleClient
             micClient.OnResponseReceived += OnMicShortPhraseResponseReceivedHandler;
             micClient.OnConversationError += OnConversationErrorHandler;
         }
-        public static string start()
+
+        private static async Task SendMessageToBotAsync()
         {
+            while(true)
+            {
+                if(timerStarted)
+                {
+                    DateTime curTime = DateTime.Now;
+                    TimeSpan span = curTime - previousTime;
+                    int ms = (int)span.TotalMilliseconds;
+                    if (ms > 500)
+                    {
+                        functionPointer(finaltext, mClient, mConversation);
+                        break;
+                    }
+                }
+                await Task.Delay(200);
+            }
+        }
+
+        public static string start(DirectLineClient client, Microsoft.Bot.Connector.DirectLine.Conversation conversation, SendRequestToBotDelegate funpointer)
+        {
+            timerStarted = false;
             flag = true;
+            mClient = client;
+            mConversation = conversation;
+            functionPointer = funpointer;
+
+            System.Threading.Thread t2 = new System.Threading.Thread(async () => await SendMessageToBotAsync());
+
+            t2.Start();
+
+
             micClient.StartMicAndRecognition();
+
+            t2.Join();
 
             while (flag) ;
 
