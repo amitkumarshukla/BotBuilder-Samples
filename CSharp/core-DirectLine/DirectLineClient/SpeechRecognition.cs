@@ -1,36 +1,40 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Bot.Connector.DirectLine;
 using Microsoft.CognitiveServices.SpeechRecognition;
 
 namespace DirectLineSampleClient
 {
-    public static class SpeechRecognition
+    public class SpeechRecognition
     {
-        static MicrophoneRecognitionClient micClient;
-        static String finaltext = "";
-        static bool flag = true;
-        static bool timerStarted = false;
-        static DateTime previousTime;
+        private MicrophoneRecognitionClient micClient;
+        private String finaltext = "";
+        private bool flag = true;
+        private bool timerStarted = false;
+        private DateTime previousTime;
 
-        static DirectLineClient mClient;
-        static Microsoft.Bot.Connector.DirectLine.Conversation mConversation;
+        private DirectLineClient mClient;
+        private Microsoft.Bot.Connector.DirectLine.Conversation mConversation;
 
         public delegate void SendRequestToBotDelegate(string input, DirectLineClient client, Microsoft.Bot.Connector.DirectLine.Conversation conversation);
 
-        private static SendRequestToBotDelegate functionPointer;
+        private SendRequestToBotDelegate functionPointer;
 
-        static SpeechRecognition()
+        public SpeechRecognition(DirectLineClient client, Microsoft.Bot.Connector.DirectLine.Conversation conversation, SendRequestToBotDelegate funpointer)
         {
             CreateMicrophoneRecoClient();
+            mClient = client;
+            mConversation = conversation;
+            functionPointer = funpointer;
         }
 
-        static string GetAuthenticationUri()
+        private string GetAuthenticationUri()
         {
             return "";
         }
 
-        static void OnMicrophoneStatus(object sender, MicrophoneEventArgs e)
+        private void OnMicrophoneStatus(object sender, MicrophoneEventArgs e)
         {
             Console.WriteLine("--- Microphone status change received by OnMicrophoneStatus() ---");
             Console.WriteLine("********* Microphone status: {0} *********", e.Recording);
@@ -42,7 +46,7 @@ namespace DirectLineSampleClient
             Console.WriteLine();
         }
 
-        static void OnPartialResponseReceivedHandler(object sender, PartialSpeechResponseEventArgs e)
+        private void OnPartialResponseReceivedHandler(object sender, PartialSpeechResponseEventArgs e)
         {
             Console.WriteLine("{0}", e.PartialResult);
             finaltext = e.PartialResult;
@@ -55,7 +59,7 @@ namespace DirectLineSampleClient
 
         }
 
-        static void OnMicShortPhraseResponseReceivedHandler(object sender, SpeechResponseEventArgs e)
+        private void OnMicShortPhraseResponseReceivedHandler(object sender, SpeechResponseEventArgs e)
         {
             //Console.WriteLine("--- OnMicShortPhraseResponseReceivedHandler ---");
 
@@ -67,14 +71,14 @@ namespace DirectLineSampleClient
             flag = false;
         }
 
-        static void OnConversationErrorHandler(object sender, SpeechErrorEventArgs e)
+        private void OnConversationErrorHandler(object sender, SpeechErrorEventArgs e)
         {
             Console.WriteLine("--- Error received by OnConversationErrorHandler() ---");
             Console.WriteLine("Error code: {0}", e.SpeechErrorCode.ToString());
             Console.WriteLine("Error text: {0}", e.SpeechErrorText);
             Console.WriteLine();
         }
-        static void CreateMicrophoneRecoClient()
+        private void CreateMicrophoneRecoClient()
         {
             micClient = SpeechRecognitionServiceFactory.CreateMicrophoneClient(
                 SpeechRecognitionMode.ShortPhrase,
@@ -89,7 +93,7 @@ namespace DirectLineSampleClient
             micClient.OnConversationError += OnConversationErrorHandler;
         }
 
-        private static async Task SendMessageToBotAsync()
+        private void SendMessageToBotAsync(Object obj)
         {
             while(true)
             {
@@ -104,31 +108,24 @@ namespace DirectLineSampleClient
                         break;
                     }
                 }
-                await Task.Delay(200);
+                //await Task.Delay(200);
+                Thread.Sleep(200);
             }
         }
 
-        public static string start(DirectLineClient client, Microsoft.Bot.Connector.DirectLine.Conversation conversation, SendRequestToBotDelegate funpointer)
+        public string start()
         {
             timerStarted = false;
             flag = true;
-            mClient = client;
-            mConversation = conversation;
-            functionPointer = funpointer;
 
-            System.Threading.Thread t2 = new System.Threading.Thread(async () => await SendMessageToBotAsync());
-
-            t2.Start();
-
+            ThreadPool.QueueUserWorkItem(new WaitCallback(SendMessageToBotAsync), null);
 
             micClient.StartMicAndRecognition();
-
-            t2.Join();
 
             while (flag) ;
 
             micClient.EndMicAndRecognition();
-            micClient.Dispose();
+            //micClient.Dispose();
 
 
             return finaltext;

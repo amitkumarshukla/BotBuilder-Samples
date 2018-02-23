@@ -85,12 +85,14 @@
         private static void SendMessageToBotAsync(DirectLineClient client, Conversation conversation)
         {
             SpeechRecognition.SendRequestToBotDelegate funpointer = SendRequestToBot;
-            Console.Write("Enter and than speak> ");
+            SpeechRecognition speechreco = new SpeechRecognition(client, conversation, funpointer);
+
             while (true)
             {
+                Console.Write("Enter and than speak> ");
                 string input = Console.ReadLine().Trim();
 
-                SpeechRecognition.start(client, conversation, funpointer);
+                speechreco.start();
             }
         }
 
