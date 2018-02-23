@@ -143,20 +143,12 @@
                                     }
                                     if (key != "")
                                     {
+                                        TextToSpeechBot ttsbot = new TextToSpeechBot();
+                                        ttsbot.MainTTS("I am opening " + account.AppName + " for you. Please enjoy it.");
                                         System.Diagnostics.Process.Start(Hardcoded.appNamevsExeMapping[key]);
                                     }
                                     break;
                             }
-                        }
-                    }
-
-                    foreach (Entity entity in activity.Entities)
-                    {
-                        if (entity.Type == "CurrentState")
-                        {
-                            currentStateNumber = entity.GetAs<BotCurrentDialogState>().CurState;
-                            Console.WriteLine("Current state is {0} ", currentStateNumber);
-                            Console.WriteLine();
                         }
                     }
 
