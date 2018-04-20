@@ -38,8 +38,8 @@ namespace MultiDialogsBot.Luis
             //var subscriptionKey = "2e69506f9cb8405d8fe74a13a11faa37";
 
             //Saumya keys
-            var luisAppId = "42c8650c-33bf-43e3-8357-a2058e71fdc7";
-            var subscriptionKey = "eb0d91ca51654152bb8e6a654936a813";
+            var luisAppId = "7e9787b0-47e3-43f0-bc23-758f86813a56";
+            var subscriptionKey = "5f6aca63c1fd43e6b6a8cd220cc7f3d3";
 
             // The request header contains your subscription key
             client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", subscriptionKey);

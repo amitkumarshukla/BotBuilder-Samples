@@ -32,7 +32,7 @@
         private static string directLineSecret = ConfigurationManager.AppSettings["DirectLineSecret"];
         private static string botId = ConfigurationManager.AppSettings["BotId"];
         private static string fromUser = "DirectLineSampleClientUser";
-        private static int currentStateNumber = 0;
+        private static string bingSpeechKey = ConfigurationManager.AppSettings["SpeechKey"];
 
         public static void Main(string[] args)
         {
@@ -85,7 +85,7 @@
         private static void SendMessageToBotAsync(DirectLineClient client, Conversation conversation)
         {
             SpeechRecognition.SendRequestToBotDelegate funpointer = SendRequestToBot;
-            SpeechRecognition speechreco = new SpeechRecognition(client, conversation, funpointer);
+            SpeechRecognition speechreco = new SpeechRecognition(client, conversation, funpointer, bingSpeechKey);
 
             while (true)
             {
@@ -145,9 +145,9 @@
                                     }
                                     if (key != "")
                                     {
-                                        TextToSpeechBot ttsbot = new TextToSpeechBot();
+                                        TextToSpeechBot ttsbot = new TextToSpeechBot(bingSpeechKey);
+                                        ttsbot.MainTTS("I am opening " + account.AppName + " for you.");
                                         System.Diagnostics.Process.Start(Hardcoded.appNamevsExeMapping[key]);
-                                        ttsbot.MainTTS("I am opening " + account.AppName + " for you. Please enjoy it.");
                                     }
                                     break;
                             }

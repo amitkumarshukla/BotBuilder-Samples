@@ -7,6 +7,12 @@ namespace DirectLineSampleClient
 {
     public class TextToSpeechBot
     {
+        private string SpeechKey = "";
+
+        public TextToSpeechBot(string speechKey)
+        {
+            SpeechKey = speechKey;
+        }
         /// <summary>
         /// This method is called once the audio returned from the service.
         /// It will then attempt to play that audio file.
@@ -43,7 +49,7 @@ namespace DirectLineSampleClient
             // Note: The way to get api key:
             // Free: https://www.microsoft.com/cognitive-services/en-us/subscriptions?productId=/products/Bing.Speech.Preview
             // Paid: https://portal.azure.com/#create/Microsoft.CognitiveServices/apitype/Bing.Speech/pricingtier/S0
-            Authentication auth = new Authentication("b43e6e21b35b47ada3dce89cf362605e");
+            Authentication auth = new Authentication(SpeechKey);
 
             try
             {

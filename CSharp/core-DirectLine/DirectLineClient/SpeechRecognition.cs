@@ -21,8 +21,11 @@ namespace DirectLineSampleClient
 
         private SendRequestToBotDelegate functionPointer;
 
-        public SpeechRecognition(DirectLineClient client, Microsoft.Bot.Connector.DirectLine.Conversation conversation, SendRequestToBotDelegate funpointer)
+        private string SpeechKey = "";
+
+        public SpeechRecognition(DirectLineClient client, Microsoft.Bot.Connector.DirectLine.Conversation conversation, SendRequestToBotDelegate funpointer, string speechKey)
         {
+            SpeechKey = speechKey;
             CreateMicrophoneRecoClient();
             mClient = client;
             mConversation = conversation;
@@ -83,7 +86,7 @@ namespace DirectLineSampleClient
             micClient = SpeechRecognitionServiceFactory.CreateMicrophoneClient(
                 SpeechRecognitionMode.ShortPhrase,
                 "en-Us",
-                "b43e6e21b35b47ada3dce89cf362605e");
+                SpeechKey);
             micClient.AuthenticationUri = GetAuthenticationUri();
 
             // Event handlers for speech recognition results
